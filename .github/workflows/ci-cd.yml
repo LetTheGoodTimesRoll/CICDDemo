@@ -17,7 +17,7 @@ jobs:
         run: |
           curl -s -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"🔨 [CICDDemo] 开始构建\n分支：${{ github.ref_name }}\n提交：${{ github.sha }}\n触发人：${{ github.actor }}\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}}"
+            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"🔨 [CICDDemo] 开始构建\\n分支：${{ github.ref_name }}\\n提交：${{ github.sha }}\\n提交信息：${{ github.event.head_commit.message }}\\n触发人：${{ github.actor }}\\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}}"
 
       # 检出完整 git 历史，支持版本号计算
       - name: 检出代码
@@ -67,7 +67,7 @@ jobs:
           if [ "$STATUS" = "success" ]; then ICON="✅"; TEXT="构建成功"; else ICON="❌"; TEXT="构建失败"; fi
           curl -s -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"${ICON} [CICDDemo] CI ${TEXT}\\n分支：${{ github.ref_name }}\\n提交：${{ github.sha }}\\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}}"
+            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"${ICON} [CICDDemo] CI ${TEXT}\\n分支：${{ github.ref_name }}\\n提交：${{ github.sha }}\\n提交信息：${{ github.event.head_commit.message }}\\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}}"
 
   release:
     name: CD - 发布 Release
@@ -129,9 +129,9 @@ jobs:
           STATUS="${{ job.status }}"
           VERSION="v1.0.${{ github.run_number }}"
           if [ "$STATUS" = "success" ]; then
-            ICON="🚀"; TEXT="Release ${VERSION} 发布成功。\n下载：https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+            ICON="🚀"; TEXT="Release ${VERSION} 发布成功。\n提交信息：${{ github.event.head_commit.message }}\n下载：https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
           else
-            ICON="❌"; TEXT="Release ${VERSION} 发布失败。\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            ICON="❌"; TEXT="Release ${VERSION} 发布失败。\n提交信息：${{ github.event.head_commit.message }}\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
           curl -s -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
