@@ -94,12 +94,12 @@ jobs:
       - name: 授予 Gradle Wrapper 执行权限
         run: chmod +x ./gradlew
 
-      # 从 GitHub Secrets 解码 Keystore 文件
+      # 从 GitHub Secrets 解码 Keystore 文件（先剔除换行/空格再解码，防止文件损坏）
       - name: 解码签名 Keystore
         env:
           KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > $KEYSTORE_PATH
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '[:space:]' | base64 -d > $KEYSTORE_PATH
           echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> $GITHUB_ENV
 
       # 构建签名 Release APK
