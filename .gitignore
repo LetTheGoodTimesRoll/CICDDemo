@@ -13,3 +13,15 @@
 .externalNativeBuild
 .cxx
 local.properties
+/.idea/.gitignore
+# Copilot 本地提示词（无需共享）
+.github/prompts/
+# Android 签名文件
+*.keystore
+/.idea/AndroidProjectSystem.xml
+/.idea/compiler.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/gradle.xml
+/.idea/misc.xml
+/.idea/runConfigurations.xml
+/.idea/vcs.xml
