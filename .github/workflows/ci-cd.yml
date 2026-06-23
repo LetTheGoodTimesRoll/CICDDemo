@@ -12,6 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 构建开始通知
+      - name: 飞书通知 - 开始构建
+        run: |
+          curl -s -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"🔨 [CICDDemo] 开始构建\n分支：${{ github.ref_name }}\n提交：${{ github.sha }}\n触发人：${{ github.actor }}\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}}"
+
       # 检出完整 git 历史，支持版本号计算
       - name: 检出代码
         uses: actions/checkout@v4
