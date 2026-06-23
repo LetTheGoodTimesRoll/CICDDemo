@@ -52,6 +52,16 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
 
+      # 发送飞书通知
+      - name: 飞书通知 - CI 构建结果
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" = "success" ]; then ICON="✅"; TEXT="构建成功"; else ICON="❌"; TEXT="构建失败"; fi
+          curl -s -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"${ICON} [CICDDemo] CI ${TEXT}\\n分支：${{ github.ref_name }}\\n提交：${{ github.sha }}\\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}}"
+
   release:
     name: CD - 发布 Release
     runs-on: ubuntu-latest
@@ -60,10 +70,6 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     permissions:
       contents: write  # 允许创建 GitHub Release
-    env:
-      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
     steps:
       # 检出完整 git 历史
@@ -94,15 +100,7 @@ jobs:
       - name: 授予 Gradle Wrapper 执行权限
         run: chmod +x ./gradlew
 
-      # 从 GitHub Secrets 解码 Keystore 文件（先剔除换行/空格再解码，防止文件损坏）
-      - name: 解码签名 Keystore
-        env:
-          KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '[:space:]' | base64 -d > $KEYSTORE_PATH
-          echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> $GITHUB_ENV
-
-      # 构建签名 Release APK
+      # 构建签名 Release APK（使用仓库内的 app/platform.keystore）
       - name: 构建 Release APK（签名）
         run: ./gradlew assembleRelease --stacktrace
 
@@ -116,3 +114,18 @@ jobs:
             app/build/outputs/apk/release/*.apk \
             --title "Release $VERSION" \
             --generate-notes
+
+      # 发送飞书通知
+      - name: 飞书通知 - CD 发布结果
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          VERSION="v1.0.${{ github.run_number }}"
+          if [ "$STATUS" = "success" ]; then
+            ICON="🚀"; TEXT="Release ${VERSION} 发布成功。\n下载：https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+          else
+            ICON="❌"; TEXT="Release ${VERSION} 发布失败。\n详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+          curl -s -X POST "${{ secrets.FEISHU_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"msg_type\":\"text\",\"content\":{\"text\":\"${ICON} [CICDDemo] ${TEXT}\"}}"

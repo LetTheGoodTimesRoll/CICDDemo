@@ -16,8 +16,8 @@ local.properties
 /.idea/.gitignore
 # Copilot 本地提示词（无需共享）
 .github/prompts/
-# Android 签名文件
-*.keystore
+# base64 编码的临时文件，无需提交
+keystore_b64.txt
 /.idea/AndroidProjectSystem.xml
 /.idea/compiler.xml
 /.idea/deploymentTargetSelector.xml
