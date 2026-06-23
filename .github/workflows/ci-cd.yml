@@ -61,7 +61,6 @@ jobs:
     permissions:
       contents: write  # 允许创建 GitHub Release
     env:
-      KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
       KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -97,7 +96,11 @@ jobs:
 
       # 从 GitHub Secrets 解码 Keystore 文件
       - name: 解码签名 Keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/release.keystore
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > $KEYSTORE_PATH
+          echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> $GITHUB_ENV
 
       # 构建签名 Release APK
       - name: 构建 Release APK（签名）
